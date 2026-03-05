@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Véu da Peste</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="phase-1">
+  <div id="introModal" class="intro-modal">
+    <section class="intro-card">
+      <h2>Ano de 1348, sob o Véu da Peste</h2>
+      <p>As cidades colapsam entre medo, fé e doença. Você é um médico em uma era brutal, onde cada decisão salva vidas ou alimenta algo pior.</p>
+      <section>
+        <h3>Selecionar Save</h3>
+        <div id="saveSlotsList" class="save-slots-list"></div>
+        <div class="intro-actions">
+          <button id="deleteSaveBtn" type="button">Apagar save selecionado</button>
+        </div>
+        <p id="phaseSpreadWarning" class="phase-spread-warning hidden"></p>
+      </section>
+      <label class="field-label" for="doctorTitleSelect">Título</label>
+      <select id="doctorTitleSelect">
+        <option value="Dr.">Dr.</option>
+        <option value="Dra.">Dra.</option>
+      </select>
+      <label class="field-label" for="doctorNameInput">Nome do médico(a)</label>
+      <input id="doctorNameInput" type="text" maxlength="24" placeholder="Ex.: Helena, Matteo..." />
+      <label class="inline-check">
+        <input id="skipTutorialCheck" type="checkbox" />
+        <span>Pular tutorial</span>
+      </label>
+      <div class="intro-actions">
+        <button id="startJourneyBtn" type="button">Iniciar jornada</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="tutorialModal" class="tutorial-modal hidden">
+    <section class="tutorial-card">
+      <h2 id="tutorialStepTitle"></h2>
+      <p id="tutorialStepText"></p>
+      <div class="tutorial-actions">
+        <button id="tutorialBackBtn" type="button">Voltar</button>
+        <button id="tutorialNextBtn" type="button">Próximo</button>
+        <button id="tutorialSkipBtn" type="button">Pular tutorial</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="exitModal" class="tutorial-modal hidden">
+    <section class="tutorial-card">
+      <h2>Voltar ao Menu</h2>
+      <p>Você vai retornar ao menu inicial com os slots de save.</p>
+      <p class="exit-warning">Atenção: seu progresso será perdido se voltar sem salvar.</p>
+      <div class="tutorial-actions">
+        <button id="exitSaveBtn" type="button">Salvar e voltar ao menu</button>
+        <button id="exitNoSaveBtn" type="button">Voltar sem salvar</button>
+        <button id="exitCancelBtn" type="button">Cancelar</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="choiceModal" class="tutorial-modal hidden">
+    <section class="tutorial-card choice-card">
+      <button id="choiceCloseBtn" class="popup-close-btn" type="button" aria-label="Fechar escolha">×</button>
+      <h2 id="choiceTitle">Escolha</h2>
+      <p id="choiceText"></p>
+      <div id="choiceActions" class="tutorial-actions"></div>
+    </section>
+  </div>
+
+  <main class="app-layout">
+    <aside class="card side-panel hud-panel">
+      <h2 id="hudDoctorName">Dr.</h2>
+      <div id="globalStats" class="hud-grid"></div>
+      <section class="hud-section hud-active-items-section">
+        <div class="hud-section-header">
+          <h2>Itens Ativos</h2>
+        </div>
+        <div id="activeEffects" class="active-effects hud-section-body"></div>
+      </section>
+      <section id="hudObjectivesSection" class="hud-section">
+        <div class="hud-section-header">
+          <h2>Objetivos / Missões Ativas</h2>
+          <div class="hud-section-actions">
+            <button id="hudObjectivesExpandBtn" type="button" aria-label="Expandir objetivos">⤢</button>
+            <button id="hudObjectivesToggleBtn" type="button" aria-label="Fechar objetivos" onclick="toggleHudObjectivesSection(event)">X</button>
+          </div>
+        </div>
+        <div id="hudObjectives" class="hud-grid hud-section-body"></div>
+      </section>
+      <section id="hudTraitsSection" class="hud-section">
+        <div class="hud-section-header">
+          <h2>Habilidades</h2>
+          <div class="hud-section-actions">
+            <button id="hudTraitsExpandBtn" type="button" aria-label="Expandir características">⤢</button>
+            <button id="hudTraitsToggleBtn" type="button" aria-label="Fechar características" onclick="toggleHudTraitsSection(event)">X</button>
+          </div>
+        </div>
+        <div id="hudTraitsInfo" class="hud-grid hud-section-body traits-list"></div>
+      </section>
+    </aside>
+
+    <section class="center-panel">
+      <header class="game-header card">
+        <div class="header-row">
+          <h1>Véu da Peste</h1>
+          <button id="exitGameBtn" class="hidden" type="button">Menu</button>
+        </div>
+        <p id="phaseTitle">Fase 1: A Rotina do Hospital</p>
+      </header>
+
+      <section class="card patient-dashboard" id="patientPanel">
+        <h2>Dashboard do Paciente</h2>
+        <div id="patientInfo"></div>
+      </section>
+
+      <section class="card log-card">
+        <h2>Log Narrativo</h2>
+        <div id="narrativeSpotlight" class="narrative-spotlight hidden"></div>
+        <div id="log" class="log"></div>
+      </section>
+
+      <section class="card actions-card">
+        <h2>Ações</h2>
+        <div id="actions" class="actions"></div>
+      </section>
+    </section>
+
+    <aside class="side-panel right-panel">
+      <section id="inventorySidebar" class="card inventory-panel">
+        <div class="inventory-header">
+          <h2>Inventário</h2>
+          <div class="inventory-header-actions">
+            <button id="inventoryExpandBtn" type="button" aria-label="Expandir inventário">⤢</button>
+            <button id="inventoryToggle" type="button" aria-label="Fechar inventário">X</button>
+          </div>
+        </div>
+        <div id="inventoryInfo" class="inventory"></div>
+      </section>
+
+      <section class="card mini-map-card">
+        <div class="mini-map-header">
+          <h2>Mapa</h2>
+          <span id="miniMapLabel" class="mini-map-label">Sem área ativa</span>
+        </div>
+        <div id="miniMapStage" class="mini-map-stage" aria-live="polite"></div>
+        <div class="mini-map-legend">
+          <span><i class="dot player"></i>Você</span>
+          <span><i class="dot generic"></i>NPC genérico</span>
+          <span><i class="dot patient"></i>Paciente</span>
+          <span><i class="dot main"></i>NPC principal</span>
+        </div>
+      </section>
+
+      <section class="card map-card">
+        <div class="map-menu-header">
+          <h2 id="mapMenuTitle">Mapa</h2>
+          <button id="mapMenuToggle" type="button">Info</button>
+        </div>
+        <div id="mapMenuPanel" class="map-menu-panel">
+          <section class="map-menu-grid">
+            <article class="card map-subcard">
+              <div id="cityMapInfo" class="map-list"></div>
+            </article>
+          </section>
+        </div>
+      </section>
+    </aside>
+  </main>
+  <div id="hospitalReminderPopup" class="hospital-reminder-popup hidden" aria-live="polite">
+    <button id="hospitalReminderClose" class="popup-close-btn" type="button" aria-label="Fechar lembrete">×</button>
+    <strong>Lembrete do Plantão</strong>
+    <p id="hospitalReminderText"></p>
+  </div>
+  <div id="inviteNoticePopup" class="hospital-reminder-popup invite-notice-popup hidden" aria-live="polite">
+    <button id="inviteNoticeClose" class="popup-close-btn" type="button" aria-label="Fechar aviso de convite">×</button>
+    <strong>Mensagem do Mensageiro</strong>
+    <p>você recebeu um convite.</p>
+  </div>
+  <div id="ambulatoryReportPopup" class="hospital-reminder-popup ambulatory-report-popup hidden" aria-live="polite">
+    <button id="ambulatoryReportClose" class="popup-close-btn" type="button" aria-label="Fechar relatório do ambulatório">×</button>
+    <strong>Relatório de Ambulatório</strong>
+    <div id="ambulatoryReportText"></div>
+  </div>
+  <div id="corpseDisposalPopup" class="hospital-reminder-popup corpse-disposal-popup hidden" aria-live="polite">
+    <button id="corpseDisposalClose" class="popup-close-btn" type="button" aria-label="Fechar aviso de descarte">×</button>
+    <strong>Situação do Descarte</strong>
+    <p id="corpseDisposalText"></p>
+    <div class="corpse-disposal-actions">
+      <button id="corpseDisposalPayBtn" type="button">Pagar uma carroça para levar os corpos (50 moedas)</button>
+      <button id="corpseDisposalLaterBtn" type="button">Resolver isso mais tarde</button>
+    </div>
+  </div>
+  <div id="tradePopup" class="hospital-reminder-popup trade-popup hidden" aria-live="polite">
+    <button id="tradeCloseBtn" class="popup-close-btn" type="button" aria-label="Fechar negociação">×</button>
+    <strong id="tradePopupTitle">Negociação com o Lojista</strong>
+    <p id="tradePopupText"></p>
+    <p id="tradePopupMeta" class="trade-meta"></p>
+    <div id="tradePopupList" class="trade-list"></div>
+    <div id="tradeOfferInputWrap" class="trade-input-wrap hidden">
+      <label for="tradeOfferInput">Sua contraproposta (moedas)</label>
+      <input id="tradeOfferInput" type="number" min="1" step="1" />
+    </div>
+    <div id="tradePopupActions" class="trade-actions"></div>
+  </div>
+  <div id="miniMapAreaPopup" class="hospital-reminder-popup mini-area-popup hidden" aria-live="polite">
+    <button id="miniMapAreaClose" class="popup-close-btn" type="button" aria-label="Fechar descrição da área">×</button>
+    <strong id="miniMapAreaTitle">Área</strong>
+    <p id="miniMapAreaText"></p>
+  </div>
+  <div id="cityInfoPopup" class="hospital-reminder-popup city-info-popup hidden" aria-live="polite">
+    <button id="cityInfoClose" class="popup-close-btn" type="button" aria-label="Fechar informações da cidade">×</button>
+    <strong id="cityInfoTitle">Informações da Cidade</strong>
+    <div id="cityInfoText"></div>
+  </div>
+  <div id="inventoryPopup" class="hospital-reminder-popup inventory-popup hidden" aria-live="polite">
+    <button id="inventoryPopupClose" class="popup-close-btn" type="button" aria-label="Fechar inventário expandido">×</button>
+    <strong>Inventário Completo</strong>
+    <div id="inventoryPopupList" class="inventory-popup-list"></div>
+  </div>
+  <div id="inventoryExpandModal" class="inventory-expand-modal hidden" aria-live="polite">
+    <section class="inventory-expand-card">
+      <button id="inventoryExpandModalClose" class="popup-close-btn" type="button" aria-label="Fechar inventário expandido">×</button>
+      <strong>Inventário Completo</strong>
+      <div id="inventoryExpandModalList" class="inventory-expand-list"></div>
+    </section>
+  </div>
+  <div id="hudObjectivesExpandModal" class="inventory-expand-modal hidden" aria-live="polite">
+    <section class="inventory-expand-card">
+      <button id="hudObjectivesExpandModalClose" class="popup-close-btn" type="button" aria-label="Fechar objetivos expandidos">×</button>
+      <strong>Objetivos / Missões Ativas</strong>
+      <div id="hudObjectivesExpandModalList" class="inventory-expand-list"></div>
+    </section>
+  </div>
+  <div id="hudTraitsExpandModal" class="inventory-expand-modal hidden" aria-live="polite">
+    <section class="inventory-expand-card">
+      <button id="hudTraitsExpandModalClose" class="popup-close-btn" type="button" aria-label="Fechar habilidades expandidas">×</button>
+      <strong>Habilidades</strong>
+      <div id="hudTraitsExpandModalList" class="inventory-expand-list"></div>
+    </section>
+  </div>
+  <div id="hudSectionPopup" class="hospital-reminder-popup hud-section-popup hidden" aria-live="polite">
+    <button id="hudSectionPopupClose" class="popup-close-btn" type="button" aria-label="Fechar painel expandido">×</button>
+    <strong id="hudSectionPopupTitle">Painel</strong>
+    <div id="hudSectionPopupContent" class="hud-section-popup-content"></div>
+  </div>
+  <div id="blackoutOverlay" class="blackout-overlay hidden" aria-hidden="true">
+    <div class="blackout-main">A PESTE</div>
+  </div>
+  <div id="collapsePopup" class="tutorial-modal hidden">
+    <section class="tutorial-card">
+      <h2>Colapso por Exaustão</h2>
+      <p id="collapseText"></p>
+      <p>Dr.(a), você foi saqueado enquanto estava apagado.</p>
+      <div class="tutorial-actions">
+        <button id="collapseOkBtn" type="button">OK</button>
+      </div>
+    </section>
+  </div>
+  <div id="deathPursuitOverlay" class="death-pursuit-overlay hidden" aria-hidden="true">a morte está a perseguir.</div>
+  <div id="infectionOverlay" class="infection-overlay hidden" aria-hidden="true">infectado</div>
+  <div id="miracleOverlay" class="miracle-overlay hidden" aria-hidden="true">dr. Milagre</div>
+  <div id="maskInviteOverlay" class="mask-overlay hidden" aria-hidden="true">
+    <section class="mask-panel envelope-panel">
+      <h2>Convite Lacrado</h2>
+      <p>Um mensageiro da alta sociedade entrega um envelope preto com selo de cera.</p>
+      <p id="maskInviteHost"></p>
+      <p>Baile de Máscaras - início às 22:00, Salão Rubro da colina norte.</p>
+      <p>Traje: máscara completa e vestes formais escuras.</p>
+      <p><strong>Única regra:</strong> jamais retire sua máscara durante o baile.</p>
+      <div id="maskInviteOptions" class="phase2-dream-options"></div>
+    </section>
+  </div>
+  <div id="maskFastClockOverlay" class="mask-fast-clock hidden" aria-hidden="true">
+    <p>Rumo ao baile...</p>
+    <strong id="maskFastClockText">00:00</strong>
+  </div>
+  <div id="maskBallOverlay" class="mask-overlay hidden" aria-hidden="true">
+    <section class="mask-panel">
+      <h2 id="maskBallTitle">Baile de Máscaras</h2>
+      <p id="maskBallText"></p>
+      <div id="maskBallOptions" class="phase2-dream-options"></div>
+    </section>
+  </div>
+  <div id="phase2DreamOverlay" class="phase2-dream-overlay hidden" aria-hidden="true">
+    <section class="phase2-dream-panel">
+      <h2>Sonho no Limiar</h2>
+      <p id="phase2DreamLine" class="phase2-dream-line"></p>
+      <div id="phase2DreamOptions" class="phase2-dream-options"></div>
+    </section>
+  </div>
+  <div id="bloodStainLayer" class="blood-stain-layer"></div>
+  <div id="bloodWarningOverlay" class="blood-warning-overlay hidden" aria-hidden="true">
+    <div class="blood-warning-main">eu vejo você</div>
+    <div id="bloodWarningEchoes" class="blood-warning-echoes"></div>
+  </div>
+  <div id="dayStartOverlay" class="day-start-overlay hidden" aria-hidden="true">
+    <div id="dayStartText" class="day-start-text">Dia 1</div>
+  </div>
+  <div id="finalDeathOverlay" class="final-death-overlay hidden" aria-hidden="true">
+    <div class="final-death-content">
+      <h2>NUNCA MAIS O AMANHECER</h2>
+      <button id="finalDeathRestartBtn" type="button">Recomeçar</button>
+    </div>
+  </div>
+
+  <script src="triage_roteiros.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
